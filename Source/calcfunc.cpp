@@ -5,6 +5,10 @@
 #include <cmath>
 #include "calc.hpp"
 
+/* simple symtab of fixed size */
+#define NHASH 9997
+struct symbol symtab[NHASH];
+
 /* Symboltable */
 static unsigned symhash(char* sym){
     unsigned int hash = 0;
@@ -20,7 +24,7 @@ symbol* lookup(char* sym){
     symbol* sp = &symtab[symhash(sym)%NHASH];
     int scount = NHASH;
 
-    while(--scount >= NHASH){
+    while(--scount >= 0){
         if(sp->name && !strcmp(sp->name, sym))
             return sp;
         if(!sp->name){
@@ -28,6 +32,7 @@ symbol* lookup(char* sym){
             sp->value = 0;
             sp->func = nullptr;
             sp->syms = nullptr;
+            return sp;
         }
         if(++sp >= symtab + NHASH) 
             sp = symtab; 
@@ -221,8 +226,8 @@ double eval(ast* a){
     case '|': v = eval(a->left); if(v < 0) v = -v; break;
     case 'M': v = -eval(a->left); break;
 
-    case '1': v = (eval(a->left) > eval(a->right))? 1 : 0; break;
-    case '2': v = (eval(a->left) < eval(a->right))? 1 : 0; break;
+    case '1': v = (eval(a->left) < eval(a->right))? 1 : 0; break;
+    case '2': v = (eval(a->left) > eval(a->right))? 1 : 0; break;
     case '3': v = (eval(a->left) != eval(a->right))? 1 : 0; break;
     case '4': v = (eval(a->left) == eval(a->right))? 1 : 0; break;
     case '5': v = (eval(a->left) >= eval(a->right))? 1 : 0; break;
@@ -291,9 +296,9 @@ static double callbuiltin(fncall* f){
 }
 
 void dodef(symbol* name, symlist* syms, ast* func){
-    if (name->syms)
+     if(name->syms) 
         symlistfree(name->syms);
-    if (name->func)
+    if(name->func) 
         treefree(name->func);
     name->syms = syms;
     name->func = func;

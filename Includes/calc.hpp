@@ -12,10 +12,6 @@ struct symbol{
     struct symlist* syms;
 };
 
-/* simple symtab of fixed size */
-#define NHASH 9997
-symbol symtab[NHASH];
-
 symbol* lookup(char*);
 
 /* list of symbols, for an argument list */

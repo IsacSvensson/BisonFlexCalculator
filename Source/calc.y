@@ -48,7 +48,7 @@ list: /* nothing */                 { $$ = nullptr; }
                                     }
     ;
 
-exp: exp CMP exp                    { $$ = newast($2, $1 , $3) }
+exp: exp CMP exp                    { $$ = newcmp($2, $1 , $3) }
     | exp '+' exp                   { $$ = newast('+', $1, $3); }
     | exp '-' exp                   { $$ = newast('-', $1, $3); }
     | exp '*' exp                   { $$ = newast('*', $1,$3); }
