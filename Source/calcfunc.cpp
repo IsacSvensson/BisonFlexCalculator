@@ -89,8 +89,7 @@ ast* newfunc(int functype, ast* l){
     a->nodetype = 'F';
     a->left = l;
     a->functype = (bifs)functype;
-
-    return (ast*)a;
+    return (struct ast *)a;
 }
 
 ast* newcall(symbol* s, ast* l){
@@ -114,7 +113,7 @@ ast* newref(symbol* s){
         yyerror("Out of space");
         exit(0);
     }
-    a->nodetype = 'M';
+    a->nodetype = 'N';
     a->s = s;
 
     return (ast*)a;
@@ -127,7 +126,7 @@ ast* newasgn(symbol* s, ast* v){
         yyerror("Out of space");
         exit(0);
     }
-    a->nodetype = 'M';
+    a->nodetype = '=';
     a->s = s;
     a->v = v;
 
@@ -170,9 +169,9 @@ void treefree(ast* a){
     case 'I': case 'W':
         delete ((flow*)a)->cond;
         if(((flow*)a)->tl)
-            treefree(((flow*)a)->tl);
+            delete ((flow*)a)->tl;
         if(((flow*)a)->el)
-            treefree(((flow*)a)->el);
+            delete ((flow*)a)->el;
         break;
     default:
         printf("Internal error: Bad node %c\n", a->nodetype);
@@ -251,7 +250,7 @@ double eval(ast* a){
     case 'W':
         v = 0.0;
         if (((flow*)a)->tl){
-            while (eval(((flow*)a)->cond))
+            while (eval(((flow*)a)->cond) != 0)
                 v = eval(((flow*)a)->tl);
         }
         break;
@@ -260,7 +259,6 @@ double eval(ast* a){
     case 'C':  v = calluser((ufncall*)a); break;
     default:
         printf("Internal error: Bad node %c\n", a->nodetype);
-        break;
     }
     return v;
 }
@@ -312,6 +310,7 @@ static double calluser(ufncall* f){
     double* newval;
     double v;
     int nargs;
+    int i;
     
     if (!fn->func){
         yyerror("Call tp undefined function", fn->name);
@@ -319,7 +318,7 @@ static double calluser(ufncall* f){
     }
 
     sl = fn->syms;
-    for (int nargs = 0; sl; sl = sl->next)
+    for (nargs = 0; sl; sl = sl->next)
         nargs++;
     
     oldval = new double[nargs];
@@ -329,7 +328,7 @@ static double calluser(ufncall* f){
         return 0.0;
     }
 
-    for(int i = 0; i < nargs; i++){
+    for(i = 0; i < nargs; i++){
         if(!args){
             yyerror("To few arguments in call to %s", fn->name);
             delete[] oldval;
@@ -347,7 +346,7 @@ static double calluser(ufncall* f){
     }
 
     sl = fn->syms;
-    for(int i = 0; i < nargs; i++){
+    for(i = 0; i < nargs; i++){
         symbol* s = sl->sym;
 
         oldval[i] = s->value;

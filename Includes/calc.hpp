@@ -1,9 +1,6 @@
 #ifndef CALC_HPP
 #define CALC_HPP
 
-extern int yylineno;
-void yyerror(char* s, ...);
-
 /* Symboltable */
 struct symbol{
     char* name;
@@ -12,17 +9,17 @@ struct symbol{
     struct symlist* syms;
 };
 
-symbol* lookup(char*);
+struct symbol* lookup(char*);
 
 /* list of symbols, for an argument list */
 struct symlist
 {
-    symbol* sym;
-    symlist* next;
+    struct symbol* sym;
+    struct symlist* next;
 };
 
-symlist* newsymlist(symbol* sym, symlist* next);
-void symlistfree(symlist* sl);
+struct symlist* newsymlist(struct symbol* sym, struct symlist* next);
+void symlistfree(struct symlist* sl);
 
 /* Node types:
  * + - * / |    Arithmetical operators
@@ -49,30 +46,30 @@ enum bifs{
 struct ast
 {
     int nodetype;
-    ast* left;
-    ast* right;
+    struct ast* left;
+    struct ast* right;
 };
 
 struct fncall
 {
     int nodetype;
-    ast* left;
-    bifs functype;
+    struct ast* left;
+    enum bifs functype;
 };
 
 struct ufncall
 {
     int nodetype;
-    ast* left;
-    symbol* s;
+    struct ast* left;
+    struct symbol* s;
 };
 
 struct flow
 {
     int nodetype;
-    ast* cond;
-    ast* tl;
-    ast* el;
+    struct ast* cond;
+    struct ast* tl;
+    struct ast* el;
 };
 
 struct numval
@@ -84,43 +81,49 @@ struct numval
 struct symval
 {
     int nodetype;
-    symbol* s;
+    struct symbol* s;
 };
 
 struct symasgn
 {
     int nodetype;
-    symbol *s;
-    ast* v;
+    struct symbol *s;
+    struct ast* v;
 };
 
 struct symref
 {
     int nodetype;
-    symbol* s;
+    struct symbol* s;
 };
 
 
 
 /* Build an AST */
-ast* newast(int nodetype, ast* left, ast* right);
-ast* newcmp(int cmptype, ast* left, ast* right);
-ast* newfunc(int functype, ast* left);
-ast* newcall(symbol* s, ast* left);
-ast* newref(symbol* s);
-ast* newasgn(symbol* s, ast* v);
-ast* newflow(int nodetype, ast* cond, ast* tl, ast* tr);
-ast* newnum(double d);
+struct ast* newast(int nodetype, struct ast* left, struct ast* right);
+struct ast* newcmp(int cmptype, struct ast* left, struct ast* right);
+struct ast* newfunc(int functype, struct ast* left);
+struct ast* newcall(struct symbol* s, struct ast* left);
+struct ast* newref(struct symbol* s);
+struct ast* newasgn(struct symbol* s, struct ast* v);
+struct ast* newflow(int nodetype, struct ast* cond, struct ast* tl, struct ast* tr);
+struct ast* newnum(double d);
 
 /* Define a function */
-void dodef(symbol* name, symlist* syms, ast* stmts);
+void dodef(struct symbol* name, struct symlist* syms, struct ast* stmts);
 
 /* Evaluate an AST */
-double eval(ast*);
+double eval(struct ast*);
 
 /* Delete an free an AST */
-void treefree(ast*);
+void treefree(struct ast*);
 
+/* interface to the lexer */
+extern int yylineno; /* from lexer */
+void yyerror(char *s, ...);
+
+extern int debug;
+void dumpast(struct ast *a, int level);
 
 
 #endif 
